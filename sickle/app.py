@@ -108,19 +108,11 @@ class Sickle(object):
             else:
                 http_response = requests.post(self.endpoint, data=kwargs,
                                               **self.request_args)
-            if http_response.status_code == 503:
-                try:
-                    retry_after = int(http_response.headers.get('retry-after'))
-                except TypeError:
-                    retry_after = 20
-                logger.info(
-                    "HTTP 503! Retrying after %d seconds..." % retry_after)
-                time.sleep(retry_after)
-            else:
-                http_response.raise_for_status()
-                if self.encoding:
-                    http_response.encoding = self.encoding
-                return OAIResponse(http_response, params=kwargs)
+            # TODO: create a more elegant solution to waiting for a few hours after 503 error
+            http_response.raise_for_status()
+            if self.encoding:
+                http_response.encoding = self.encoding
+            return OAIResponse(http_response, params=kwargs)
 
     def ListRecords(self, ignore_deleted=False, **kwargs):
         """Issue a ListRecords request.
